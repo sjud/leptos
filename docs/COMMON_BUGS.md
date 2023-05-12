@@ -123,3 +123,48 @@ The resolver version can be set in the workspace `Cargo.toml` to remedy this iss
 members = ["member1", "member2"]
 resolver = "2"
 ```
+
+## Dissecting Trait Errors
+
+### Unnessary Arg In view Closure
+```rust
+	<p value = move |_| {"value"}></p>
+	// vs
+	<p value = move || {"value"}></p>
+```
+If you've added an unessarcy argument to a closure in a view macro you'll get this error.
+
+```rust
+error[E0599]: the method `into_attribute` exists for closure `[closure@project/src/app.rs:6:22]`, but its trait bounds were not satisfied
+  --> project/src/app.rs:4:5
+   |
+4  |       view!{cx,
+   |  _____^
+5  | |         
+6  | |             <p value=move |_| {
+   | |                      --------
+   | |                      |
+   | |                      doesn't satisfy `<_ as FnOnce<()>>::Output = _`
+   | |                      doesn't satisfy `_: Fn<()>`
+   | |                      doesn't satisfy `_: IntoAttribute`
+7  | |                 if count > 0 {
+...  |
+13 | |
+14 | |     }
+   | |_____^ method cannot be called on `[closure@app.rs:6:22]` due to unsatisfied trait bounds
+   |
+   = note: the following trait bounds were not satisfied:
+          `<[closure@project/src/app.rs:6:22: 6:30] as FnOnce<()>>::Output = _`
+           which is required by `[closure@project/src/app.rs:6:22: 6:30]: leptos::IntoAttribute`
+           `[closure@project/src/app.rs:6:22: 6:30]: std::ops::Fn<()>`
+           which is required by `[closure@cproject/src/app.rs:6:22: 6:30]: leptos::IntoAttribute`
+           `<&[closure@project/src/app.rs:6:22: 6:30] as FnOnce<()>>::Output = _`
+           which is required by `&[closure@project/src/app.rs:6:22: 6:30]: leptos::IntoAttribute`
+           `&[closure@project/src/app.rs:6:22: 6:30]: std::ops::Fn<()>`
+           which is required by `&[closure@project/src/app.rs:6:22: 6:30]: leptos::IntoAttribute`
+           `<&mut [closure@project/src/app.rs:6:22: 6:30] as FnOnce<()>>::Output = _`
+           which is required by `&mut [closure@project/src/app.rs:6:22: 6:30]: leptos::IntoAttribute`
+           `&mut [closure@project/src/app.rs:6:22: 6:30]: std::ops::Fn<()>`
+           which is required by `&mut [closure@project/src/app.rs:6:22: 6:30]: leptos::IntoAttribute`
+   = note: this error originates in the macro `view` (in Nightly builds, run with -Z macro-backtrace for more info) 
+```
