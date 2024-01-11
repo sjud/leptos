@@ -74,7 +74,7 @@ experimental-islands = [
   "dep:serde",
   "dep:serde_json",
 ]
-
+tauri = ["server_fn/tauri"]
 [package.metadata.cargo-all-features]
 denylist = [
   "nightly",

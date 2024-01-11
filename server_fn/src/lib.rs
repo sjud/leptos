@@ -444,7 +444,7 @@ where
 {
     use ciborium::ser::into_writer;
     use serde_json::Deserializer as JSONDeserializer;
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(all(not(target_arch = "wasm32"),not(feature="tauri")))]
     let url = format!("{}{}", get_server_url(), url);
 
     #[derive(Debug)]
@@ -479,7 +479,7 @@ where
         Encoding::Cbor | Encoding::GetCBOR => "application/cbor",
     };
 
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(all(target_arch = "wasm32",not(feature="tauri")))]
     let resp = match &enc {
         Encoding::Url | Encoding::Cbor => match args_encoded {
             Payload::Binary(b) => {
@@ -517,7 +517,7 @@ where
             }
         },
     };
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(any(not(target_arch = "wasm32"),feature="tauri"))]
     let resp = match &enc {
         Encoding::Url | Encoding::Cbor => match args_encoded {
             Payload::Binary(b) => CLIENT
@@ -558,7 +558,7 @@ where
 
     // check for error status
     let status = resp.status();
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(all(not(target_arch = "wasm32"),not(feature="tauri")))]
     let status = status.as_u16();
     if (400..=599).contains(&status) {
         let text = resp.text().await.unwrap_or_default();
@@ -610,21 +610,21 @@ where
 }
 
 // Lazily initialize the client to be reused for all server function calls.
-#[cfg(any(all(not(feature = "ssr"), not(target_arch = "wasm32")), doc))]
+#[cfg(any(all(not(feature = "ssr"), not(target_arch = "wasm32"),not(feature="tauri") ), doc))]
 static CLIENT: once_cell::sync::Lazy<reqwest::Client> =
     once_cell::sync::Lazy::new(reqwest::Client::new);
 
-#[cfg(any(all(not(feature = "ssr"), not(target_arch = "wasm32")), doc))]
+#[cfg(any(all(not(feature = "ssr"), not(target_arch = "wasm32"), not(feature="tauri")), doc))]
 static ROOT_URL: once_cell::sync::OnceCell<&'static str> =
     once_cell::sync::OnceCell::new();
 
-#[cfg(any(all(not(feature = "ssr"), not(target_arch = "wasm32")), doc))]
+#[cfg(any(all(not(feature = "ssr"), not(target_arch = "wasm32"), not(feature="tauri")), doc))]
 /// Set the root server url that all server function paths are relative to for the client. On WASM this will default to the origin.
 pub fn set_server_url(url: &'static str) {
     ROOT_URL.set(url).unwrap();
 }
 
-#[cfg(all(not(feature = "ssr"), not(target_arch = "wasm32")))]
+#[cfg(all(not(feature = "ssr"), not(target_arch = "wasm32"), not(feature="tauri")))]
 fn get_server_url() -> &'static str {
     ROOT_URL
         .get()
