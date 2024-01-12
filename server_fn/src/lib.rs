@@ -519,10 +519,9 @@ where
     };
 
     // check for error status
-    let status = resp.status();
-    #[cfg(not(target_arch = "wasm32"))]
-    let status = status.as_u16();
-        if (400..=599).contains(&status) {
+    let status = resp.status().parse::<u32>().expect("status to be u32");
+
+    if (400..=599).contains(&status) {
         let text = resp.text().await.unwrap_or_default();
         return Err(match serde_json::from_str(&text) {
             Ok(e) => e,
