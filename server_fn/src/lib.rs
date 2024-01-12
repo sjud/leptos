@@ -519,7 +519,7 @@ where
     };
 
     // check for error status
-    let status = resp.status().parse::<u32>().expect("status to be u32");
+    let status = resp.status().to_string().parse::<u32>().expect("status to be u32");
 
     if (400..=599).contains(&status) {
         let text = resp.text().await.unwrap_or_default();
