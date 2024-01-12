@@ -564,9 +564,6 @@ where
         return Err(match serde_json::from_str(&text) {
             Ok(e) => e,
             Err(_) => {
-                #[cfg(target_arch = "wasm32")]
-                let status_text = resp.status_text();
-                #[cfg(not(target_arch = "wasm32"))]
                 let status_text = status.to_string();
                 ServerFnError::ServerError(if text.is_empty() {
                     format!("{} {}", status, status_text)
@@ -579,21 +576,11 @@ where
 
     // Decoding the body of the request
     if (enc == Encoding::Cbor) || (enc == Encoding::GetCBOR) {
-        #[cfg(target_arch = "wasm32")]
-        let binary = resp
-            .binary()
-            .await
-            .map_err(|e| ServerFnError::Deserialization(e.to_string()))?;
-        #[cfg(target_arch = "wasm32")]
-        let binary = binary.as_slice();
-        #[cfg(not(target_arch = "wasm32"))]
         let binary = resp
             .bytes()
             .await
             .map_err(|e| ServerFnError::Deserialization(e.to_string()))?;
-        #[cfg(not(target_arch = "wasm32"))]
         let binary = binary.as_ref();
-
         ciborium::de::from_reader(binary)
             .map_err(|e| ServerFnError::Deserialization(e.to_string()))
     } else {
