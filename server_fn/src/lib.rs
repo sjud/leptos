@@ -558,7 +558,6 @@ where
 
     // check for error status
     let status = resp.status();
-    #[cfg(all(not(target_arch = "wasm32"),not(feature="tauri")))]
     let status = status.as_u16();
     if (400..=599).contains(&status) {
         let text = resp.text().await.unwrap_or_default();
