@@ -610,21 +610,17 @@ where
 }
 
 // Lazily initialize the client to be reused for all server function calls.
-#[cfg(any(all(not(feature = "ssr"), not(target_arch = "wasm32"),feature="tauri" ), doc))]
 static CLIENT: once_cell::sync::Lazy<reqwest::Client> =
     once_cell::sync::Lazy::new(reqwest::Client::new);
 
-#[cfg(any(all(not(feature = "ssr"), feature="tauri"), doc))]
 static ROOT_URL: once_cell::sync::OnceCell<&'static str> =
     once_cell::sync::OnceCell::new();
 
-#[cfg(any(all(not(feature = "ssr"), feature="tauri"), doc))]
 /// Set the root server url that all server function paths are relative to for the client. On WASM this will default to the origin.
 pub fn set_server_url(url: &'static str) {
     ROOT_URL.set(url).unwrap();
 }
 
-#[cfg(all(not(feature = "ssr"), feature="tauri"))]
 fn get_server_url() -> &'static str {
     ROOT_URL
         .get()
