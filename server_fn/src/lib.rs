@@ -610,7 +610,7 @@ where
 }
 
 // Lazily initialize the client to be reused for all server function calls.
-#[cfg(any(all(not(feature = "ssr"), not(target_arch = "wasm32"),not(feature="tauri") ), doc))]
+#[cfg(any(all(not(feature = "ssr"), not(target_arch = "wasm32"),feature="tauri" ), doc))]
 static CLIENT: once_cell::sync::Lazy<reqwest::Client> =
     once_cell::sync::Lazy::new(reqwest::Client::new);
 
