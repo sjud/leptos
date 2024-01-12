@@ -444,7 +444,7 @@ where
 {
     use ciborium::ser::into_writer;
     use serde_json::Deserializer as JSONDeserializer;
-    #[cfg(all(not(target_arch = "wasm32"),not(feature="tauri")))]
+
     let url = format!("{}{}", get_server_url(), url);
 
     #[derive(Debug)]
@@ -479,45 +479,7 @@ where
         Encoding::Cbor | Encoding::GetCBOR => "application/cbor",
     };
 
-    #[cfg(all(target_arch = "wasm32",not(feature="tauri")))]
-    let resp = match &enc {
-        Encoding::Url | Encoding::Cbor => match args_encoded {
-            Payload::Binary(b) => {
-                let slice_ref: &[u8] = &b;
-                let js_array = js_sys::Uint8Array::from(slice_ref).buffer();
-                gloo_net::http::Request::post(url)
-                    .header("Content-Type", content_type_header)
-                    .header("Accept", accept_header)
-                    .body(js_array)
-                    .send()
-                    .await
-                    .map_err(|e| ServerFnError::Request(e.to_string()))?
-            }
-            Payload::Url(s) => gloo_net::http::Request::post(url)
-                .header("Content-Type", content_type_header)
-                .header("Accept", accept_header)
-                .body(s)
-                .send()
-                .await
-                .map_err(|e| ServerFnError::Request(e.to_string()))?,
-        },
-        Encoding::GetCBOR | Encoding::GetJSON => match args_encoded {
-            Payload::Binary(_) => panic!(
-                "Binary data cannot be transferred via GET request in a query \
-                 string. Please try using the CBOR encoding."
-            ),
-            Payload::Url(s) => {
-                let full_url = format!("{url}?{s}");
-                gloo_net::http::Request::get(&full_url)
-                    .header("Content-Type", content_type_header)
-                    .header("Accept", accept_header)
-                    .send()
-                    .await
-                    .map_err(|e| ServerFnError::Request(e.to_string()))?
-            }
-        },
-    };
-    #[cfg(any(not(target_arch = "wasm32"),feature="tauri"))]
+
     let resp = match &enc {
         Encoding::Url | Encoding::Cbor => match args_encoded {
             Payload::Binary(b) => CLIENT
@@ -558,8 +520,9 @@ where
 
     // check for error status
     let status = resp.status();
+    #[cfg(not(target_arch = "wasm32"))]
     let status = status.as_u16();
-    if (400..=599).contains(&status) {
+        if (400..=599).contains(&status) {
         let text = resp.text().await.unwrap_or_default();
         return Err(match serde_json::from_str(&text) {
             Ok(e) => e,
@@ -581,6 +544,7 @@ where
             .await
             .map_err(|e| ServerFnError::Deserialization(e.to_string()))?;
         let binary = binary.as_ref();
+
         ciborium::de::from_reader(binary)
             .map_err(|e| ServerFnError::Deserialization(e.to_string()))
     } else {

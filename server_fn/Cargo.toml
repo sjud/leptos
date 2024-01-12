@@ -35,7 +35,6 @@ js-sys = "0.3"
 
 
 [features]
-tauri=[]
 default-tls = ["reqwest/default-tls"]
 rustls = ["reqwest/rustls-tls"]
 ssr = ["inventory"]
