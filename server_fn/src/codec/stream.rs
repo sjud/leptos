@@ -155,7 +155,7 @@ impl Encoding for StreamingText {
 /// ## Browser Support for Streaming Input
 ///
 /// Browser fetch requests do not currently support full request duplexing, which
-/// means that that they do begin handling responses until the full request has been sent.
+/// means that that they don't begin handling responses until the full request has been sent.
 /// This means that if you use a streaming input encoding, the input stream needs to
 /// end before the output will begin.
 ///
