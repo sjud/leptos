@@ -1,13 +1,6 @@
 # Leptos Auth Ory Integration (With Axum)
 This repo used [start-axum-workspace](https://github.com/leptos-rs/start-axum-workspace/) as a base.
 
-## How to read this example.
-
-In the e2e crate in the project's root, each feature is labeled in order of implementation and describes the high level over view of the flow.
-<br>
-Each feature file corresponds to a feature, i.e login.feature -> login.rs which implements the integration with Ory Kratos.
-<br>
-Comments are written to explain the overall flow of kratos and how the integration works with leptos.
 
 ## High Level Overview
 
