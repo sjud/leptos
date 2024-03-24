@@ -1,6 +1,24 @@
 # Leptos Auth Ory Integration (With Axum)
 This repo used [start-axum-workspace](https://github.com/leptos-rs/start-axum-workspace/) as a base.
 
+## How to run the example.
+
+Run in different terminal windows (for the best result)
+
+```sh
+cargo leptos serve
+```
+
+```sh
+docker compose up
+```
+
+```sh
+cargo test --test app_suite
+```
+
+This will run our server, set up our compose file (MailCrab, Ory Kratos, Ory Ketos) and run the test suite that walks through logging in, registration, verification etc.
+
 
 ## High Level Overview
 
