@@ -85,7 +85,6 @@ mkcert -install localhost 127.0.0.1 ::1
 
 Copy your cert.pem, key.pem and rootCA.pem into this crate's root.
 
-## How this project's git workflow works
 
 ## Thoughts, Feedback, Criticism, Comments?
 Send me any of the above, I'm @sjud on leptos discord. I'm always looking to improve and make these examples more helpful for the community. So please let me know how I can do that. Thanks!
