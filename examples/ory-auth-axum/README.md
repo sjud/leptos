@@ -19,6 +19,8 @@ cargo test --test app_suite
 
 This will run our server, set up our compose file (MailCrab, Ory Kratos, Ory Ketos) and run the test suite that walks through logging in, registration, verification etc.
 
+The e2e testing uses [chromiumoxide](https://crates.io/crates/chromiumoxide) and does things like monitor network requests, console messages, take screenshots during the flow and produces them when any of our feature tests fail. This can be a helpful starting point in debugging, etc.
+
 
 ## High Level Overview
 
