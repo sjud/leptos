@@ -26,3 +26,6 @@ This example shows how to add breakpoints within the browser or visual studio co
 
 ### bevy3d_ui
 This example uses the bevy 3d game engine with leptos within webassembly.
+
+### openapi-openai-api-swagger-ui
+Shows how to add openapi specifications using [Utoipa](https://docs.rs/utoipa/latest/utoipa/) and then pass that openapi spec to the OpenAI API which allows your agent to generate JSON arguments for your leptos server functions.
