@@ -15,6 +15,9 @@ pub fn get_server_url() -> &'static str {
     ROOT_URL.get().copied().unwrap_or("")
 }
 
+
+
+
 /// A client defines a pair of request/response types and the logic to send
 /// and receive them.
 ///

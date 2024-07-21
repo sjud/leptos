@@ -2,13 +2,41 @@ use super::ClientReq;
 use crate::{client::get_server_url, error::ServerFnError};
 use bytes::Bytes;
 use futures::{Stream, StreamExt};
-pub use gloo_net::http::Request;
+pub use gloo_net::http::{Request,Headers};
 use js_sys::{Reflect, Uint8Array};
 use send_wrapper::SendWrapper;
 use std::ops::{Deref, DerefMut};
 use wasm_bindgen::JsValue;
 use wasm_streams::ReadableStream;
-use web_sys::{FormData, Headers, RequestInit, UrlSearchParams};
+use web_sys::{FormData, RequestInit, UrlSearchParams};
+use std::sync::OnceLock;
+
+static GLOBAL_HEADERS: OnceLock<Vec<(String,String)>> = OnceLock::new();
+
+
+/// Set the global headers for dispatching from the browser.
+/// When you set global headers, make sure that you are setting them so that they are only available to the client.
+/// I.e underneath a `#[cfg(feature="hydrate")]` flag or an equivalent. Trying to set them on the server wil result in PANIC.
+pub fn set_global_headers(headers:Vec<(String,String)>) {
+    GLOBAL_HEADERS.set(headers).unwrap();
+}
+
+/// Get the global headers
+pub fn get_global_headers() -> Headers {
+    let default = Vec::new();
+    let global_headers = GLOBAL_HEADERS.get().unwrap_or(&default);
+    if global_headers.is_empty() {
+        Headers::new()
+    } else{
+        let headers = Headers::new();
+        for (k,v) in global_headers{
+            headers.append(k,v);
+        }
+        headers
+    }
+}
+
+
 
 /// A `fetch` request made in the browser.
 #[derive(Debug)]
@@ -66,6 +94,7 @@ impl<CustErr> ClientReq<CustErr> for BrowserRequest {
         query: &str,
     ) -> Result<Self, ServerFnError<CustErr>> {
         let server_url = get_server_url();
+        let headers = get_global_headers();
         let mut url = String::with_capacity(
             server_url.len() + path.len() + 1 + query.len(),
         );
@@ -77,6 +106,7 @@ impl<CustErr> ClientReq<CustErr> for BrowserRequest {
             Request::get(&url)
                 .header("Content-Type", content_type)
                 .header("Accept", accepts)
+                .headers(headers)
                 .build()
                 .map_err(|e| ServerFnError::Request(e.to_string()))?,
         )))
@@ -89,6 +119,7 @@ impl<CustErr> ClientReq<CustErr> for BrowserRequest {
         body: String,
     ) -> Result<Self, ServerFnError<CustErr>> {
         let server_url = get_server_url();
+        let headers = get_global_headers();
         let mut url = String::with_capacity(server_url.len() + path.len());
         url.push_str(server_url);
         url.push_str(path);
@@ -96,6 +127,7 @@ impl<CustErr> ClientReq<CustErr> for BrowserRequest {
             Request::post(&url)
                 .header("Content-Type", content_type)
                 .header("Accept", accepts)
+                .headers(headers)
                 .body(body)
                 .map_err(|e| ServerFnError::Request(e.to_string()))?,
         )))
@@ -108,6 +140,7 @@ impl<CustErr> ClientReq<CustErr> for BrowserRequest {
         body: Bytes,
     ) -> Result<Self, ServerFnError<CustErr>> {
         let server_url = get_server_url();
+        let headers = get_global_headers();
         let mut url = String::with_capacity(server_url.len() + path.len());
         url.push_str(server_url);
         url.push_str(path);
@@ -117,6 +150,7 @@ impl<CustErr> ClientReq<CustErr> for BrowserRequest {
             Request::post(&url)
                 .header("Content-Type", content_type)
                 .header("Accept", accepts)
+                .headers(headers)
                 .body(body)
                 .map_err(|e| ServerFnError::Request(e.to_string()))?,
         )))
@@ -128,12 +162,14 @@ impl<CustErr> ClientReq<CustErr> for BrowserRequest {
         body: Self::FormData,
     ) -> Result<Self, ServerFnError<CustErr>> {
         let server_url = get_server_url();
+        let headers = get_global_headers();
         let mut url = String::with_capacity(server_url.len() + path.len());
         url.push_str(server_url);
         url.push_str(path);
         Ok(Self(SendWrapper::new(
             Request::post(&url)
                 .header("Accept", accepts)
+                .headers(headers)
                 .body(body.0.take())
                 .map_err(|e| ServerFnError::Request(e.to_string()))?,
         )))
@@ -189,7 +225,7 @@ fn streaming_request(
         Ok(data) as Result<JsValue, JsValue>
     }))
     .into_raw();
-    let headers = Headers::new()?;
+    let headers = web_sys::Headers::new()?;
     headers.append("Content-Type", content_type)?;
     headers.append("Accept", accepts)?;
     let mut init = RequestInit::new();
