@@ -2,22 +2,21 @@ use super::ClientReq;
 use crate::{client::get_server_url, error::ServerFnError};
 use bytes::Bytes;
 use futures::{Stream, StreamExt};
-pub use gloo_net::http::{Request,Headers};
+pub use gloo_net::http::{Headers, Request};
 use js_sys::{Reflect, Uint8Array};
 use send_wrapper::SendWrapper;
 use std::ops::{Deref, DerefMut};
+use std::sync::OnceLock;
 use wasm_bindgen::JsValue;
 use wasm_streams::ReadableStream;
 use web_sys::{FormData, RequestInit, UrlSearchParams};
-use std::sync::OnceLock;
 
-static GLOBAL_HEADERS: OnceLock<Vec<(String,String)>> = OnceLock::new();
-
+static GLOBAL_HEADERS: OnceLock<Vec<(String, String)>> = OnceLock::new();
 
 /// Set the global headers for dispatching from the browser.
 /// When you set global headers, make sure that you are setting them so that they are only available to the client.
 /// I.e underneath a `#[cfg(feature="hydrate")]` flag or an equivalent. Trying to set them on the server wil result in PANIC.
-pub fn set_global_headers(headers:Vec<(String,String)>) {
+pub fn set_global_headers(headers: Vec<(String, String)>) {
     GLOBAL_HEADERS.set(headers).unwrap();
 }
 
@@ -27,16 +26,14 @@ pub fn get_global_headers() -> Headers {
     let global_headers = GLOBAL_HEADERS.get().unwrap_or(&default);
     if global_headers.is_empty() {
         Headers::new()
-    } else{
+    } else {
         let headers = Headers::new();
-        for (k,v) in global_headers{
-            headers.append(k,v);
+        for (k, v) in global_headers {
+            headers.append(k, v);
         }
         headers
     }
 }
-
-
 
 /// A `fetch` request made in the browser.
 #[derive(Debug)]
